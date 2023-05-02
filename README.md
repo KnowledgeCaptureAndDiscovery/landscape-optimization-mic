@@ -1,2 +1,2 @@
 # landscape-optimization-mic
-MIC notebook for Landscape Optimization
+MIC ready notebook for Landscape Optimization
