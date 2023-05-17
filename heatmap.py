@@ -232,7 +232,9 @@ def heatmap(
     
     raster.close()
 
-    shutil.make_archive(heatmaps_zip_file_path, 'zip', heatmap_res_dir)
-    os.rename(heatmaps_zip_file_path + '.zip', heatmaps_zip_file_path)
-    
-    shutil.rmtree(heatmap_res_dir)
+    # Some OS commands to tar/gz the heatmaps folder
+    # Calling OS commands for faster execution
+    os.system("tar -cvf " + heatmap_res_dir + ".tar " + heatmap_res_dir)
+    os.system("gzip " + heatmap_res_dir + ".tar")
+    os.rename(heatmap_res_dir + '.tar.gz', heatmaps_zip_file_path)
+    os.system("rm -rf " + heatmap_res_dir)
