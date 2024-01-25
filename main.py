@@ -57,15 +57,21 @@ def calculate_hypervolumes(res1_200, res1_500, res1_1000):
     return hv_base
 
 
-def save_results(res1, res1_200, res1_500, res1_1000, result_subsets, 
+def plot_results(callback_val, res, plot_file):
+    print("Function values at gen " + callback_val + ": %s" % res)
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(res[:, 0], res[:, 1], res[:, 2])
+    ax.view_init(-30, 30)
+    ax.set_xlabel('Burn_Area')
+    ax.set_ylabel('Bldg_Dmg')
+    ax.set_zlabel('Habitat_Dmg')
+    plt.savefig(plot_file)
+    plt.show()
+
+def save_results(res1, result_subsets, 
         base_formulation_gen_res,
-        base_formulation_gen_200,
-        base_formulation_gen_500,
-        base_formulation_gen_1000,
         base_formulation_gen_res_sub):
-    np.savetxt(base_formulation_gen_200, X = res1_200)
-    np.savetxt(base_formulation_gen_500, X = res1_500)
-    np.savetxt(base_formulation_gen_1000, X = res1_1000)
     np.savetxt(base_formulation_gen_res, X = res1.F)
     np.savetxt(base_formulation_gen_res_sub, X = result_subsets)
 
@@ -78,9 +84,6 @@ def main(
         solutions_file_path,
         solutions_values_file_path,
         base_formulation_gen_res,
-        base_formulation_gen_200,
-        base_formulation_gen_500,
-        base_formulation_gen_1000,
         base_formulation_gen_res_sub):
    
    print("Run main function")
@@ -99,11 +102,8 @@ def main(
    res1, res1_200, res1_500, res1_1000 = base_optimization(values_df, budget, rx_burn_units, prevention_df)
    result_subsets = get_results_subset(res1)
 
-   save_results(res1, res1_200, res1_500, res1_1000, result_subsets, 
+   save_results(res1, result_subsets, 
                 base_formulation_gen_res,
-                base_formulation_gen_200,
-                base_formulation_gen_500,
-                base_formulation_gen_1000,
                 base_formulation_gen_res_sub)
 
    hv_base = calculate_hypervolumes(res1_200, res1_500, res1_1000)

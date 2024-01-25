@@ -48,7 +48,7 @@ def heatmap_files_generate(
     
     with rasterio.open(os.path.join(heatmap_res_dir, 'heatmaps/summed_raster_heatmaps/summed_raster_heatmap_area_{}.tif'.format(index+1)),
                             'w',
-                            #driver='GTiff',
+                            driver='GTiff',
                             height = heat_array.shape[0],
                             width = heat_array.shape[1],
                             count=1,
@@ -82,7 +82,7 @@ def heatmap_files_generate(
                 dst.write(heat_array_bldg, 1)
                 dst.close()
 
-        
+
 def heatmap(
           values_file_path, 
           prevention_file_path, 
@@ -91,7 +91,10 @@ def heatmap(
           heatmaps_zip_file_path,
           burned_area_dir,
           bldg_dmg_dir,
-          habitat_dmg_dir):
+          habitat_dmg_dir,
+          complete_lb, complete_rb,
+          complete_tb, complete_bb
+          ):
 
     burned_area_tifs = glob(os.path.join(burned_area_dir, '*.tif'))
     print('total simulated burns =', len(burned_area_tifs))
@@ -104,8 +107,8 @@ def heatmap(
     res1 = np.loadtxt(base_formulation_results_file_path)
     result_subsets = np.loadtxt(base_formulation_result_subsets_file_path)
 
-    complete_lb, complete_rb, complete_tb, complete_bb = [753003.071258364, 839057.6399108863, 4133476.546731642, 4230634.714689108]
-    print(complete_lb, complete_rb, complete_tb, complete_bb)
+    # complete_lb, complete_rb, complete_tb, complete_bb = [753003.071258364, 839057.6399108863, 4133476.546731642, 4230634.714689108]
+    # print(complete_lb, complete_rb, complete_tb, complete_bb)
 
     heatmap_res_dir = tempfile.mkdtemp(prefix='heatmap_res_dir_')
 
@@ -150,8 +153,8 @@ def heatmap(
         heat_array_bldg = np.zeros([xdim, ydim])
         heat_array_habi = np.zeros([xdim, ydim])
 
-        # print('heat array init done')
-        # poly = prevention_df.iloc[poly_idx].geometry
+        print('heat array init done')
+        poly = prevention_df.iloc[poly_idx].geometry
         # raster1 = rasterio.open(burned_area_tifs[prevention_df.iloc[poly_idx]['covered_raster_ids'][0].astype(int)])
 
         for raster_num in prevention_df.iloc[poly_idx]['covered_raster_ids'].astype(int):

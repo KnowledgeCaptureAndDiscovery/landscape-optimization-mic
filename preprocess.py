@@ -33,22 +33,45 @@ def get_truncated_ignitions(full_ignitions_df, burn_file_names):
 
 def get_burn_area_values(truncated_ignitions_df, burned_area_dir, bldg_dmg_file_names, habitat_dmg_file_names):
     values_df = pd.DataFrame(columns = ['filename', 'x_ignition', 'y_ignition', 
-                                    'burn_area', 'bldg_dmg', 'habitat_dmg'])
+                                    'burn_area', 'bldg_dmg', 'habitat_dmg',
+                                    'xmin', 'ymin', 'xmax', 'ymax'])
     values_df[['filename', 'x_ignition', 'y_ignition']] =  truncated_ignitions_df[['filename', 'x_ignition', 'y_ignition']]
 
     burn_area_values = []
     bld_dmg_values = []
     habitat_dmg_values = []
 
+    all_xmin, all_ymin, all_xmax, all_ymax = np.inf, np.inf, 0, 0
+
+    xmins = []
+    ymins = []
+    xmaxs = []
+    ymaxs = []
+
     for name in values_df.filename:
         file_name = os.path.join(burned_area_dir,'burned_area-{}.tif'.format(name))
         raster = rasterio.open(file_name)
+        xmin, ymin, xmax, ymax = raster.bounds
+        # maintain the bounds
+        all_xmin = min(all_xmin, xmin)
+        all_ymin = min(all_ymin, ymin)
+        all_xmax = max(all_xmax, xmax)
+        all_ymax = max(all_ymax, ymax)
+
+        xmins.append(xmin)
+        ymins.append(ymin)
+        xmaxs.append(xmax)
+        ymaxs.append(ymax)
+
         img = raster.read(1)
         burn_val = np.sum(img)
         burn_area_values.append(burn_val)
     burn_area_values = np.array(burn_area_values)
-
-    values_df['burn_area'] = burn_area_values.tolist()
+    values_df['burn_area'] = list(burn_area_values)
+    values_df['xmin'] = list(xmins)
+    values_df['ymin'] = list(ymins)
+    values_df['xmax'] = list(xmaxs)
+    values_df['ymax'] = list(ymaxs)
 
     bld_dmg_values = np.zeros(shape = burn_area_values.shape)
 
@@ -84,7 +107,8 @@ def get_burn_area_values(truncated_ignitions_df, burned_area_dir, bldg_dmg_file_
 
     values_df['habitat_dmg'] = habitat_dmg_values.tolist()
     
-    return values_df
+    return (values_df, all_ymin, all_ymax, all_xmin, all_xmax)
+
 
 def write_csv_to_file(file_path, data):
     data.to_csv(file_path, index=False)
@@ -161,7 +185,8 @@ def preprocess(
 
     ## Call when values_df needs to be created
     truncated_ignitions_df = get_truncated_ignitions(full_ignitions_df, burn_file_names)
-    values_df = get_burn_area_values(truncated_ignitions_df, burned_area_dir, bldg_dmg_file_names, habitat_dmg_file_names)
+    (values_df, all_ymin, all_ymax, all_xmin, all_xmax) = get_burn_area_values(
+        truncated_ignitions_df, burned_area_dir, bldg_dmg_file_names, habitat_dmg_file_names)
     write_csv_to_file(values_file_path, values_df)
 
     ## Call to generate prevention_df
@@ -169,3 +194,4 @@ def preprocess(
     write_csv_to_file(prevention_file_path, prevention_df)
 
     print("Generated prevention df")
+    return (all_ymin, all_ymax, all_xmin, all_xmax)
